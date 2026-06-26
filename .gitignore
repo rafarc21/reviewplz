@@ -1,0 +1,9 @@
+node_modules/
+.wrangler/
+dist/
+.DS_Store
+*.log
+
+# generated / local backend bits
+server/cloudflare/wrangler.toml
+server/cloudflare/public/

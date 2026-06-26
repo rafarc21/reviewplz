@@ -1,0 +1,16 @@
+{
+  "name": "reviewlay-server-cloudflare",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Reviewlay reference backend — Cloudflare Pages Functions + D1",
+  "scripts": {
+    "db:create": "wrangler d1 create reviewlay",
+    "db:schema": "wrangler d1 execute reviewlay --remote --file=schema.sql",
+    "deploy": "bash deploy.sh",
+    "dev": "wrangler pages dev public"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20240000.0",
+    "wrangler": "^3.80.0"
+  }
+}
