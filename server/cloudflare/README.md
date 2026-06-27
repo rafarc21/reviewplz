@@ -1,4 +1,4 @@
-# Reviewlay — Cloudflare backend (reference)
+# Reviewplz — Cloudflare backend (reference)
 
 Cloudflare Pages Functions + D1. Free tier is plenty for review work.
 
@@ -8,7 +8,7 @@ You can either:
   serves the site you're reviewing, add the D1 binding, done. The widget calls
   `/api/...` (default), no CORS needed.
 - **Standalone** — deploy this folder on its own and point the widget at it with
-  `data-api="https://reviewlay.<you>.pages.dev/api"`. The included CORS
+  `data-api="https://reviewplz.<you>.pages.dev/api"`. The included CORS
   middleware makes cross-origin work.
 
 ## Setup
@@ -31,8 +31,8 @@ npm run db:schema
 npm run deploy
 ```
 
-`deploy.sh` copies `reviewlay.js` into `public/` so the deployment also serves
-the widget at `/reviewlay.js`.
+`deploy.sh` copies `reviewplz.js` into `public/` so the deployment also serves
+the widget at `/reviewplz.js`.
 
 ## API
 
@@ -49,11 +49,11 @@ the widget at `/reviewlay.js`.
 
 ```bash
 # list a board's comments
-wrangler d1 execute reviewlay --remote --command \
+wrangler d1 execute reviewplz --remote --command \
   "SELECT id,author,text FROM comments WHERE board='myboard-desktop'"
 
 # wipe a board after a review round
-wrangler d1 execute reviewlay --remote --command \
+wrangler d1 execute reviewplz --remote --command \
   "DELETE FROM replies WHERE board LIKE 'myboard%'; DELETE FROM comments WHERE board LIKE 'myboard%'"
 ```
 

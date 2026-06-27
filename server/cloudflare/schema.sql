@@ -1,5 +1,5 @@
--- Reviewlay D1 schema. Apply with:
---   wrangler d1 execute reviewlay --remote --file=schema.sql
+-- Reviewplz D1 schema. Apply with:
+--   wrangler d1 execute reviewplz --remote --file=schema.sql
 
 CREATE TABLE IF NOT EXISTS comments (
   id     TEXT PRIMARY KEY,

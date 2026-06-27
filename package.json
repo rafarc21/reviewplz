@@ -1,12 +1,12 @@
 {
-  "name": "reviewlay",
+  "name": "reviewplz",
   "version": "0.1.0",
   "description": "Self-hosted, Figma-style review & comment overlay for any website. One drop-in script.",
-  "main": "reviewlay.js",
-  "unpkg": "reviewlay.js",
-  "jsdelivr": "reviewlay.js",
+  "main": "reviewplz.js",
+  "unpkg": "reviewplz.js",
+  "jsdelivr": "reviewplz.js",
   "files": [
-    "reviewlay.js"
+    "reviewplz.js"
   ],
   "keywords": [
     "review",
@@ -22,11 +22,11 @@
   ],
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/rafarc21/reviewlay.git"
+    "url": "git+https://github.com/rafarc21/reviewplz.git"
   },
-  "homepage": "https://github.com/rafarc21/reviewlay#readme",
+  "homepage": "https://github.com/rafarc21/reviewplz#readme",
   "bugs": {
-    "url": "https://github.com/rafarc21/reviewlay/issues"
+    "url": "https://github.com/rafarc21/reviewplz/issues"
   },
   "author": "rafarc21",
   "license": "MIT"

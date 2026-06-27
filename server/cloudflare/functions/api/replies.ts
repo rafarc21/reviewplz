@@ -1,6 +1,6 @@
 /// <reference types="@cloudflare/workers-types" />
 
-// Reviewlay threaded replies, stored in Cloudflare D1 (binding DB).
+// Reviewplz threaded replies, stored in Cloudflare D1 (binding DB).
 // GET ?comment=<id> lists a thread; POST appends; DELETE removes one reply.
 
 interface Env {

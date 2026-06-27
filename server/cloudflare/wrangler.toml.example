@@ -1,9 +1,9 @@
 # Copy to wrangler.toml, then fill in database_id (from `npm run db:create`).
-name = "reviewlay"
+name = "reviewplz"
 pages_build_output_dir = "public"
 compatibility_date = "2026-04-15"
 
 [[d1_databases]]
 binding = "DB"
-database_name = "reviewlay"
+database_name = "reviewplz"
 database_id = "REPLACE_WITH_YOUR_D1_DATABASE_ID"

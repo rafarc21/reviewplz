@@ -1,6 +1,6 @@
 /// <reference types="@cloudflare/workers-types" />
 
-// Reviewlay comments API, stored in Cloudflare D1 (binding DB).
+// Reviewplz comments API, stored in Cloudflare D1 (binding DB).
 // GET ?board=<board> lists; POST appends; DELETE removes (cascades to replies).
 
 interface Env {
