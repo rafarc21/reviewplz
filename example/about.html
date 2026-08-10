@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Reviewplz — demo page</title>
+  <title>Reviewplz — about page</title>
   <style>
     :root { font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; color: #16181D; }
     * { box-sizing: border-box; }
@@ -24,24 +24,17 @@
   <header><b>Acme</b><nav><a href="index.html">Home</a> · <a href="about.html">About</a></nav></header>
 
   <section>
-    <h1>A demo page to review</h1>
-    <p class="lead">Open this page with <code>?review=demo</code> in the URL, enter a name, then click anywhere to leave a pinned comment. Open a pin to reply.</p>
-    <p class="hint">⚠️ Comments only persist if a backend is reachable at <code>data-api</code>. Run the Cloudflare backend (see <code>server/cloudflare</code>) and point <code>data-api</code> at it, or set it to your deployment URL.</p>
+    <h1>About page</h1>
+    <p class="lead">Navigate here from the home page while reviewing — the board follows you without re-pasting <code>?review=</code>. Comments dropped here stay here.</p>
+    <p class="hint">Drop a comment on this page, go back Home, and use the 🗂 pages chip in the toolbar to jump back.</p>
   </section>
 
   <section>
-    <h2>Pinned to elements</h2>
-    <p class="lead">Drop a comment on this paragraph, then scroll — the pin stays glued to the text, not to a screen position.</p>
+    <h2>Team</h2>
     <div class="grid">
-      <div class="card"><h2 style="font-size:20px">Card one</h2><p>Comment on me.</p></div>
-      <div class="card"><h2 style="font-size:20px">Card two</h2><p>Or me.</p></div>
-      <div class="card"><h2 style="font-size:20px">Card three</h2><p>Or me.</p></div>
+      <div class="card"><h2 style="font-size:20px">Ada</h2><p>Founder.</p></div>
+      <div class="card"><h2 style="font-size:20px">Grace</h2><p>Engineering.</p></div>
     </div>
-  </section>
-
-  <section>
-    <h2>Device review</h2>
-    <p class="lead">Use the toolbar's device button to flip between desktop and mobile. Comments are kept separately per device.</p>
   </section>
 
   <footer>Reviewplz demo · MIT</footer>
