@@ -28,7 +28,7 @@
 **Interfaces:**
 - Produces: `SKEY = 'rpz-board'` sessionStorage key. `rawBoard` may now come from storage. Exit button id `rpz-exit`.
 
-- [ ] **Step 1: Replace activation block** (`reviewplz.js:33-35`)
+- [x] **Step 1: Replace activation block** (`reviewplz.js:33-35`)
 
 ```js
   var params = new URLSearchParams(location.search);
@@ -43,20 +43,20 @@
 
 Iframe rule: no param + iframe → inert (host-site same-origin iframes must not sprout widgets; the device-preview iframe carries the param in its src).
 
-- [ ] **Step 2: Add exit button css** (after `#rpz-bar #rpz-dev` rule, `reviewplz.js:76`)
+- [x] **Step 2: Add exit button css** (after `#rpz-bar #rpz-dev` rule, `reviewplz.js:76`)
 
 ```js
     '#rpz-bar #rpz-exit{border:0;cursor:pointer;border-radius:999px;padding:8px 10px;font:700 12px ' + FONT + ';background:rgba(255,255,255,.16);color:#fff}',
 ```
 
-- [ ] **Step 3: Add exit button to bar html** (`reviewplz.js:250-255`, after `#rpz-mode` button)
+- [x] **Step 3: Add exit button to bar html** (`reviewplz.js:250-255`, after `#rpz-mode` button)
 
 ```js
       '<button id="rpz-mode">✏️ Commenting</button>' +
       '<button id="rpz-exit" title="Exit review">✕</button>';
 ```
 
-- [ ] **Step 4: Wire exit handler** (in the `!framed` branch, after `devBtn` wiring)
+- [x] **Step 4: Wire exit handler** (in the `!framed` branch, after `devBtn` wiring)
 
 ```js
     bar.querySelector('#rpz-exit').addEventListener('click', function () {
@@ -69,11 +69,11 @@ Iframe rule: no param + iframe → inert (host-site same-origin iframes must not
     });
 ```
 
-- [ ] **Step 5: Size check**
+- [x] **Step 5: Size check**
 
 Run: `gzip -c reviewplz.js | wc -c` — expect < 10240. Record number.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add reviewplz.js && git commit -m "Board survives navigation: sessionStorage activation + explicit exit (issue #1)"
@@ -88,7 +88,7 @@ git add reviewplz.js && git commit -m "Board survives navigation: sessionStorage
 - Consumes: nothing new.
 - Produces: `normPath(p)` → normalized path string; `pagePath` (current page, normalized); `onPage(c)` → bool; `allComments` array (full board list) for Task 3.
 
-- [ ] **Step 1: Add path helpers to state block** (after `var board = ...`, `reviewplz.js:101`)
+- [x] **Step 1: Add path helpers to state block** (after `var board = ...`, `reviewplz.js:101`)
 
 ```js
   var normPath = function (p) {
@@ -100,7 +100,7 @@ git add reviewplz.js && git commit -m "Board survives navigation: sessionStorage
   var allComments = [];
 ```
 
-- [ ] **Step 2: Filter in loadBoard** (`reviewplz.js:342-347`)
+- [x] **Step 2: Filter in loadBoard** (`reviewplz.js:342-347`)
 
 ```js
   function loadBoard() {
@@ -117,11 +117,11 @@ git add reviewplz.js && git commit -m "Board survives navigation: sessionStorage
 
 `renderPages` arrives in Task 3; until then stub it right above `loadBoard`: `var renderPages = function () {};` (Task 3 replaces the stub).
 
-- [ ] **Step 3: Size check**
+- [x] **Step 3: Size check**
 
 Run: `gzip -c reviewplz.js | wc -c` — expect < 10240.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add reviewplz.js && git commit -m "Scope comments to their page; legacy null-path renders everywhere (issue #1)"
@@ -136,7 +136,7 @@ git add reviewplz.js && git commit -m "Scope comments to their page; legacy null
 - Consumes: `allComments`, `normPath`, `pagePath` (Task 2).
 - Produces: `renderPages()` (real), popup id `rpz-pages`, chip id `rpz-pgs`.
 
-- [ ] **Step 1: css** (next to `#rpz-bar #rpz-dev` rule)
+- [x] **Step 1: css** (next to `#rpz-bar #rpz-dev` rule)
 
 ```js
     '#rpz-bar #rpz-pgs{border:0;cursor:pointer;border-radius:999px;padding:8px 12px;font:700 12px ' + FONT + ';background:rgba(255,255,255,.16);color:#fff}',
@@ -146,7 +146,7 @@ git add reviewplz.js && git commit -m "Scope comments to their page; legacy null
     '#rpz-pages button span{color:#9AA0A6;font-weight:600}',
 ```
 
-- [ ] **Step 2: bar html** — insert chip between count chip and name input
+- [x] **Step 2: bar html** — insert chip between count chip and name input
 
 ```js
       '<span class="chip" id="rpz-count">0</span>' +
@@ -154,7 +154,7 @@ git add reviewplz.js && git commit -m "Scope comments to their page; legacy null
       '<input id="rpz-name" placeholder="Your name" />' +
 ```
 
-- [ ] **Step 3: Replace Task 2 stub with real implementation + wiring.** Place the block right before `function loadBoard()`; it needs `bar`, so guard on `pagesBtn`. Declare `pagesBtn` with the other toolbar vars (`var nameInput = null, modeBtn = null, countEl = null, devBtn = null, pagesBtn = null, pagesPop = null;`) and set `pagesBtn = bar.querySelector('#rpz-pgs')` in the `!framed` branch with this click wiring:
+- [x] **Step 3: Replace Task 2 stub with real implementation + wiring.** Place the block right before `function loadBoard()`; it needs `bar`, so guard on `pagesBtn`. Declare `pagesBtn` with the other toolbar vars (`var nameInput = null, modeBtn = null, countEl = null, devBtn = null, pagesBtn = null, pagesPop = null;`) and set `pagesBtn = bar.querySelector('#rpz-pgs')` in the `!framed` branch with this click wiring:
 
 ```js
     pagesBtn = bar.querySelector('#rpz-pgs');
@@ -208,7 +208,7 @@ Implementation block (before `loadBoard`):
 
 (Task 2's `var renderPages = function () {};` stub is deleted here.)
 
-- [ ] **Step 4: Close popup on outside click** — in the existing document click handler (`reviewplz.js:436-441`), `closeCards();` line becomes:
+- [x] **Step 4: Close popup on outside click** — in the existing document click handler (`reviewplz.js:436-441`), `closeCards();` line becomes:
 
 ```js
     closeCards(); // any click outside the widget closes an open comment card
@@ -217,17 +217,17 @@ Implementation block (before `loadBoard`):
 
 And in the `t.closest('.rpz')` early-return branch keep popup open only for clicks inside bar/popup — no change needed (popup is `.rpz`, clicks inside it are handled by its own listeners).
 
-- [ ] **Step 5: Gate copy** — add one list item after the Device line (`reviewplz.js:410`)
+- [x] **Step 5: Gate copy** — add one list item after the Device line (`reviewplz.js:410`)
 
 ```js
       '<li>🗂 <b>Pages</b> — comments stay on the page you drop them; the toolbar lists the rest.</li>' +
 ```
 
-- [ ] **Step 6: Size check**
+- [x] **Step 6: Size check**
 
 Run: `gzip -c reviewplz.js | wc -c` — expect < 10240.
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add reviewplz.js && git commit -m "Toolbar pages chip: per-page counts + jump to commented pages (issue #1)"
@@ -241,13 +241,13 @@ git add reviewplz.js && git commit -m "Toolbar pages chip: per-page counts + jum
 
 **Interfaces:** none.
 
-- [ ] **Step 1: Real nav in index.html** — replace `<nav>Product · Pricing · About</nav>` with
+- [x] **Step 1: Real nav in index.html** — replace `<nav>Product · Pricing · About</nav>` with
 
 ```html
 <nav><a href="index.html">Home</a> · <a href="about.html">About</a></nav>
 ```
 
-- [ ] **Step 2: Create about.html** — same skeleton/styles as index (copy head), body:
+- [x] **Step 2: Create about.html** — same skeleton/styles as index (copy head), body:
 
 ```html
 <body>
@@ -269,7 +269,7 @@ git add reviewplz.js && git commit -m "Toolbar pages chip: per-page counts + jum
 </body>
 ```
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add example/ && git commit -m "Example: second page + nav to exercise multi-page review (issue #1)"
@@ -282,7 +282,7 @@ git add example/ && git commit -m "Example: second page + nav to exercise multi-
 **Interfaces:**
 - Produces: running stack at `http://localhost:40201/example/?review=demo`, local D1 with schema + one legacy row.
 
-- [ ] **Step 1: Assemble dir**
+- [x] **Step 1: Assemble dir**
 
 ```bash
 S=/private/tmp/claude-501/-Users-rafarj-code-reviewplz-worktrees-1-multipage-v1/72b0e3a0-8191-4817-b99f-869134f68614/scratchpad/e2e
@@ -303,7 +303,7 @@ database_id = "reviewplz-local"
 EOF
 ```
 
-- [ ] **Step 2: Schema + legacy seed into local D1**
+- [x] **Step 2: Schema + legacy seed into local D1**
 
 ```bash
 cd "$S"
@@ -311,7 +311,7 @@ npx wrangler d1 execute reviewplz --local --file="$R/server/cloudflare/schema.sq
 npx wrangler d1 execute reviewplz --local --command "INSERT INTO comments (id,board,x,y,path,text,author,ts) VALUES ('legacy1','demo-desktop',50,8,NULL,'Legacy note, no path','Old Widget',1700000000000)"
 ```
 
-- [ ] **Step 3: Start + verify server**
+- [x] **Step 3: Start + verify server**
 
 ```bash
 cd "$S" && npx wrangler pages dev --port 40201   # background
@@ -327,24 +327,24 @@ If `pages dev` does not share the d1 state dir with `d1 execute`, re-run the sch
 
 Checks map 1:1 to issue #1 acceptance criteria. Run in scripted browser (superpowers-chrome). All on `http://localhost:40201`.
 
-- [ ] **C1 nav survival:** open `/example/?review=demo`, enter name, click About link → widget bar present on `/example/about.html` without param. Exit ✕ on About → widget gone; reload → still gone (storage cleared).
-- [ ] **C2 scoping:** re-activate. Comment on Home ("home pin"). Go About: home pin absent. Comment About ("about pin"). Back Home: only home pin + legacy pin. `curl /api/comments?board=demo-desktop` shows both rows with distinct `path`.
-- [ ] **C3 other-page visibility:** on Home, chip shows `1 on 1 page`; click → popup lists about path; click it → lands on About with about pin rendered.
-- [ ] **C4 legacy:** `legacy1` (path NULL) pin renders on Home AND About.
-- [ ] **C5 device split:** in desktop viewport, `curl .../api/comments?board=demo-mobile` → `[]` (desktop comments never leak to mobile board). Toggle device button still opens preview iframe with param in src.
-- [ ] **C6 size:** `gzip -c reviewplz.js | wc -c` < 10240.
-- [ ] **C7 server untouched:** `git diff main -- server/` empty.
-- [ ] Console: no errors on either page.
-- [ ] Fix anything failing, re-run failed check, then commit fixes.
+- [x] **C1 nav survival:** open `/example/?review=demo`, enter name, click About link → widget bar present on `/example/about.html` without param. Exit ✕ on About → widget gone; reload → still gone (storage cleared).
+- [x] **C2 scoping:** re-activate. Comment on Home ("home pin"). Go About: home pin absent. Comment About ("about pin"). Back Home: only home pin + legacy pin. `curl /api/comments?board=demo-desktop` shows both rows with distinct `path`.
+- [x] **C3 other-page visibility:** on Home, chip shows `1 on 1 page`; click → popup lists about path; click it → lands on About with about pin rendered.
+- [x] **C4 legacy:** `legacy1` (path NULL) pin renders on Home AND About.
+- [x] **C5 device split:** in desktop viewport, `curl .../api/comments?board=demo-mobile` → `[]` (desktop comments never leak to mobile board). Toggle device button still opens preview iframe with param in src.
+- [x] **C6 size:** `gzip -c reviewplz.js | wc -c` < 10240.
+- [x] **C7 server untouched:** `git diff main -- server/` empty.
+- [x] Console: no errors on either page.
+- [x] Fix anything failing, re-run failed check, then commit fixes.
 
 ### Task 7: Review + PR
 
-- [ ] **Step 1:** superpowers:requesting-code-review on full branch diff; fix legit findings; re-run affected checks.
-- [ ] **Step 2:** Push branch, open PR against `main`:
+- [x] **Step 1:** superpowers:requesting-code-review on full branch diff; fix legit findings; re-run affected checks.
+- [x] **Step 2:** Push branch, open PR against `main`:
 
 ```bash
 git push -u origin 1-multipage-v1
 gh pr create --repo rafarc21/reviewplz --base main --title "Multi-page review: board survives navigation, comments scope to page (fixes #1)" --body "<criterion→evidence table, size numbers, repro steps>"
 ```
 
-- [ ] **Step 3:** Report to CTO terminal (briefing command), fallback `.context/REPORT.md`.
+- [x] **Step 3:** Report to CTO terminal (briefing command), fallback `.context/REPORT.md`.
