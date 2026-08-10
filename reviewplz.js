@@ -80,6 +80,11 @@
     '#rpz-bar input{background:rgba(255,255,255,.12);border:0;color:#fff;border-radius:8px;padding:6px 9px;font:600 13px ' + FONT + ';width:100px}',
     '#rpz-bar #rpz-dev{border:0;cursor:pointer;border-radius:999px;padding:8px 12px;font:700 12px ' + FONT + ';background:rgba(255,255,255,.16);color:#fff}',
     '#rpz-bar #rpz-exit{border:0;cursor:pointer;border-radius:999px;padding:8px 10px;font:700 12px ' + FONT + ';background:rgba(255,255,255,.16);color:#fff}',
+    '#rpz-bar #rpz-pgs{border:0;cursor:pointer;border-radius:999px;padding:8px 12px;font:700 12px ' + FONT + ';background:rgba(255,255,255,.16);color:#fff}',
+    '#rpz-pages{position:fixed;left:16px;z-index:2147483647;background:#0B0D11;color:#fff;border-radius:12px;padding:6px;font:600 12px ' + FONT + ';box-shadow:0 10px 30px rgba(0,0,0,.4);display:flex;flex-direction:column;gap:2px;max-height:40vh;overflow-y:auto;min-width:200px}',
+    '#rpz-pages button{border:0;cursor:pointer;background:none;color:#fff;text-align:left;border-radius:8px;padding:7px 10px;font:600 12px ' + FONT + ';display:flex;gap:12px;justify-content:space-between;align-items:baseline}',
+    '#rpz-pages button:hover{background:rgba(255,255,255,.14)}',
+    '#rpz-pages button span{color:#9AA0A6;font-weight:600}',
     '#rpz-bar #rpz-mode{border:0;cursor:pointer;border-radius:999px;padding:8px 14px;font:700 12px ' + FONT + ';background:' + ACCENT + ';color:#fff}',
     '#rpz-bar #rpz-mode.off{background:rgba(255,255,255,.16)}',
     '#rpz-composer{position:fixed;z-index:2147483000;width:250px;background:#fff;border-radius:12px;box-shadow:0 20px 60px rgba(0,0,0,.4);padding:12px}',
@@ -241,7 +246,7 @@
   setInterval(function () { schedule(false); }, 700); // safety: late media/layout shifts
 
   // ── single toolbar (top window only) ──
-  var nameInput = null, modeBtn = null, countEl = null, devBtn = null;
+  var nameInput = null, modeBtn = null, countEl = null, devBtn = null, pagesBtn = null, pagesPop = null;
 
   var setCount = function () {
     if (countEl) countEl.textContent = count + (count === 1 ? ' comment' : ' comments');
@@ -264,6 +269,7 @@
       '<span class="chip">Review <b></b></span>' +
       '<button id="rpz-dev"></button>' +
       '<span class="chip" id="rpz-count">0</span>' +
+      '<button id="rpz-pgs"></button>' +
       '<input id="rpz-name" placeholder="Your name" />' +
       '<button id="rpz-mode">✏️ Commenting</button>' +
       '<button id="rpz-exit" title="Exit review">✕</button>';
@@ -292,6 +298,9 @@
       history.replaceState(null, '', location.pathname + (params.toString() ? '?' + params.toString() : '') + location.hash);
       location.reload();
     });
+    pagesBtn = bar.querySelector('#rpz-pgs');
+    pagesBtn.style.display = 'none'; // shown by renderPages when other pages hold comments
+    pagesBtn.addEventListener('click', function (e) { e.stopPropagation(); if (pagesPop) closePages(); else openPages(); });
 
     window.addEventListener('message', function (e) {
       if (e && e.data && e.data.rpz === 'count' && typeof e.data.v === 'number') { count = e.data.v; setCount(); }
@@ -361,7 +370,48 @@
     recs.push(rec);
   }
 
-  var renderPages = function () {}; // replaced by the pages chip below
+  // ── pages chip: comments living on other pages, grouped by normalized path ──
+  var otherPages = function () {
+    var m = {}, order = [], i, raw, p;
+    for (i = 0; i < allComments.length; i++) {
+      raw = allComments[i].path;
+      if (!raw) continue; // legacy → shown on every page, not listed
+      p = normPath(raw);
+      if (p === pagePath) continue;
+      if (!m[p]) { m[p] = { n: 0, href: raw }; order.push(p); } // navigate with the raw path that worked when commented
+      m[p].n++;
+    }
+    return { m: m, order: order };
+  };
+  var closePages = function () { if (pagesPop) { pagesPop.remove(); pagesPop = null; } };
+  var openPages = function () {
+    var o = otherPages();
+    if (!o.order.length) return;
+    pagesPop = document.createElement('div');
+    pagesPop.id = 'rpz-pages';
+    pagesPop.className = 'rpz';
+    o.order.sort().forEach(function (p) {
+      var b = document.createElement('button');
+      b.textContent = p;
+      var s = document.createElement('span');
+      s.textContent = o.m[p].n;
+      b.appendChild(s);
+      b.addEventListener('click', function () { location.href = o.m[p].href; });
+      pagesPop.appendChild(b);
+    });
+    var barTop = document.getElementById('rpz-bar').getBoundingClientRect().top;
+    pagesPop.style.bottom = (window.innerHeight - barTop + 8) + 'px';
+    document.body.appendChild(pagesPop);
+  };
+  var renderPages = function () {
+    if (!pagesBtn) return;
+    var o = otherPages(), total = 0;
+    o.order.forEach(function (p) { total += o.m[p].n; });
+    pagesBtn.style.display = o.order.length ? '' : 'none';
+    pagesBtn.textContent = '🗂 ' + total + ' on ' + o.order.length + ' page' + (o.order.length === 1 ? '' : 's');
+    closePages();
+  };
+
   function loadBoard() {
     clearPins();
     refreshCount();
@@ -435,6 +485,7 @@
       '<li>💬 <b>Reply</b> — open any pin to reply to a teammate.</li>' +
       '<li>👆 <b>Browsing</b> — switch off commenting to click through the site normally.</li>' +
       '<li>🖥 / 📱 <b>Device</b> — review desktop and mobile separately.</li>' +
+      '<li>🗂 <b>Pages</b> — comments stay on the page you drop them; the toolbar lists the rest.</li>' +
       '</ul>' +
       '<input id="rpz-gname" placeholder="Your name" autocomplete="name" />' +
       '<button id="rpz-go" disabled>Start reviewing</button></div>';
@@ -464,6 +515,7 @@
     var t = e.target;
     if (t.closest('.rpz')) { schedule(false); return; } // our own UI handles itself
     closeCards(); // any click outside the widget closes an open comment card
+    closePages();
     var ignore = 'a, button, input, textarea, select, summary, label, [data-close]' + (cfg.ignore ? ', ' + cfg.ignore : '');
     if (!adding || t.closest(ignore)) { schedule(false); return; }
     e.preventDefault();
