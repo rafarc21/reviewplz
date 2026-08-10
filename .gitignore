@@ -7,3 +7,6 @@ dist/
 # generated / local backend bits
 server/cloudflare/wrangler.toml
 server/cloudflare/public/
+.context/
+.agentastic/
+.cache/

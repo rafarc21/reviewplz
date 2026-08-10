@@ -22,6 +22,7 @@ Tools like this exist (Markup, BugHerd, Pastel…) but they're paid SaaS that in
 - 💬 **Threaded replies** — multiple reviewers, one conversation per pin.
 - 🙋 **Identity gate** — first-time reviewers enter a name, so every comment and reply is attributed.
 - 🖥 / 📱 **Device review** — one toggle flips between desktop and mobile; comments are kept per device. On a phone, "desktop" loads the real desktop layout in a scrollable frame (like Chrome's *Request desktop site*).
+- 🧭 **Multi-page review** — once activated, the board follows the reviewer through internal navigation (per tab, via `sessionStorage`) until they hit ✕ in the toolbar. Comments stick to the page they were made on; a 🗂 chip lists the other pages that have comments and jumps to them. Comments from before v0.2 (no recorded path) render on every page.
 - 🪟 **Respects your UI** — comments dropped on a modal/popup track it and sit above it; page comments sit below open overlays. You can comment *on* modals.
 - 🔢 **Clean numbering** — pins renumber as one continuous series; no duplicates after deletes.
 - 🎨 **Themeable** — set your accent colour, font, and which elements never take a comment.
@@ -49,7 +50,9 @@ across sites, point the widget at it: `data-api="https://reviewplz.you.pages.dev
 ### 3. Review
 
 Open any page with `?review=<board-name>` (e.g. `?review=acme-homepage`). Enter
-your name, click anywhere to leave a comment, open a pin to reply.
+your name, click anywhere to leave a comment, open a pin to reply. From there the
+board sticks for the whole tab — click through the site normally and comment on
+any page; leave with the toolbar's ✕ (or by closing the tab).
 
 ## Configuration
 
@@ -78,6 +81,7 @@ Interactive elements (`a, button, input, textarea, select, label, summary`, anyt
 
 - **Anchoring.** On click, Reviewplz records a CSS path to the target element plus the fractional offset within it. On render it positions each pin from that element's live rect every frame — so pins follow content through scroll and layout shifts. Comments on `position: fixed` overlays (modals) are tracked in viewport space and hidden when the overlay closes.
 - **Device split.** Boards are stored as `<board>-desktop` and `<board>-mobile`. The device toggle opens a same-origin iframe (`?...&framed=1`) at the target width so the *real* responsive layout renders; the iframe has no toolbar — the single toolbar drives it via `postMessage`.
+- **Pages.** Each comment records `location.pathname`; the widget fetches the whole board and renders only the pins whose (normalized) path matches the current page — `/pricing/`, `/pricing` and `/pricing/index.html` are the same page. The 🗂 chip is built from the same list, so seeing other pages' counts costs no extra request. Activation state is one `sessionStorage` key; nothing is rewritten in your links or history except re-appending `?review=` so copied URLs keep working.
 - **Storage.** Comments and replies live in two D1 tables (`comments`, `replies`). Deleting a comment cascades to its replies.
 
 ## Self-hosting elsewhere

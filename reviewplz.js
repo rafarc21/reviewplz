@@ -40,9 +40,10 @@
       sessionStorage.setItem(SKEY, rawBoard); // param wins; refresh the stored board
     } else if (window.self === window.top || inPreview) { // other iframes need the explicit param
       rawBoard = sessionStorage.getItem(SKEY);
-      if (rawBoard && window.self === window.top) { // re-sync URL so a copied link re-activates the board
-        params.set(cfg.param, rawBoard);
-        history.replaceState(null, '', location.pathname + '?' + params.toString() + location.hash);
+      if (rawBoard && window.self === window.top && !params.has(cfg.param)) { // re-sync URL so a copied link re-activates the board
+        history.replaceState(null, '', location.pathname +
+          (location.search ? location.search + '&' : '?') +
+          encodeURIComponent(cfg.param) + '=' + encodeURIComponent(rawBoard) + location.hash); // raw append: never re-encode the host site's own params
       }
     }
   } catch (e) { /* storage blocked → param-only behavior */ }
@@ -121,8 +122,9 @@
   var board = rawBoard + '-' + device;
   var apiUrl = function () { return cfg.api + '/comments?board=' + encodeURIComponent(board); };
   var normPath = function (p) {
-    p = p.replace(/\/index\.html?$/, '/'); // /a/index.html ≡ /a/
-    return p.length > 1 ? p.replace(/\/+$/, '') : p; // trailing slash off, root stays '/'
+    p = String(p).replace(/\/+$/, ''); // non-string rows must not throw; trailing slashes off first
+    p = p.replace(/\/index\.html?$/, ''); // /a/index.html ≡ /a/ ≡ /a
+    return p || '/'; // root stays '/'
   };
   var pagePath = normPath(location.pathname);
   var onPage = function (c) { return !c.path || normPath(c.path) === pagePath; }; // no path → legacy, every page
@@ -385,6 +387,7 @@
     for (i = 0; i < allComments.length; i++) {
       raw = allComments[i].path;
       if (!raw) continue; // legacy → shown on every page, not listed
+      if (!/^\/(?![\/\\])/.test(raw)) continue; // only same-site rooted paths are pages (\ normalizes to / in URLs)
       p = normPath(raw);
       if (p === pagePath) continue;
       if (!m[p]) { m[p] = { n: 0, href: raw }; order.push(p); } // navigate with the raw path that worked when commented
