@@ -106,6 +106,13 @@
   var device = naturalDev();
   var board = rawBoard + '-' + device;
   var apiUrl = function () { return cfg.api + '/comments?board=' + encodeURIComponent(board); };
+  var normPath = function (p) {
+    p = p.replace(/\/index\.html?$/, '/'); // /a/index.html ≡ /a/
+    return p.length > 1 ? p.replace(/\/+$/, '') : p; // trailing slash off, root stays '/'
+  };
+  var pagePath = normPath(location.pathname);
+  var onPage = function (c) { return !c.path || normPath(c.path) === pagePath; }; // no path → legacy, every page
+  var allComments = [];
   var name = localStorage.getItem('rpz-name') || '';
   var adding = true;
   var composer = null;
@@ -354,11 +361,16 @@
     recs.push(rec);
   }
 
+  var renderPages = function () {}; // replaced by the pages chip below
   function loadBoard() {
     clearPins();
     refreshCount();
     closeComposer();
-    fetch(apiUrl()).then(function (r) { return r.json(); }).then(function (list) { list.forEach(addPin); renumber(); refreshCount(); schedule(false); }).catch(function () {});
+    fetch(apiUrl()).then(function (r) { return r.json(); }).then(function (list) {
+      allComments = list;
+      list.filter(onPage).forEach(addPin);
+      renumber(); refreshCount(); renderPages(); schedule(false);
+    }).catch(function () {});
   }
 
   // ── device toggle / preview (top window only) ──
