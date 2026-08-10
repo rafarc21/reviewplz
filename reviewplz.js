@@ -32,7 +32,12 @@
 
   var params = new URLSearchParams(location.search);
   var rawBoard = params.get(cfg.param);
-  if (!rawBoard) return; // inert unless ?<param>=<board> is present
+  var SKEY = 'rpz-board';
+  try {
+    if (rawBoard) sessionStorage.setItem(SKEY, rawBoard); // param wins; refresh the stored board
+    else if (window.self === window.top) rawBoard = sessionStorage.getItem(SKEY); // iframes need the explicit param
+  } catch (e) { /* storage blocked → param-only behavior */ }
+  if (!rawBoard) return; // inert unless activated by param or stored board
 
   var reviewId = rawBoard;
   var framed = params.has('framed'); // running inside the device-preview iframe
@@ -74,6 +79,7 @@
     '#rpz-bar .chip b{color:#fff}',
     '#rpz-bar input{background:rgba(255,255,255,.12);border:0;color:#fff;border-radius:8px;padding:6px 9px;font:600 13px ' + FONT + ';width:100px}',
     '#rpz-bar #rpz-dev{border:0;cursor:pointer;border-radius:999px;padding:8px 12px;font:700 12px ' + FONT + ';background:rgba(255,255,255,.16);color:#fff}',
+    '#rpz-bar #rpz-exit{border:0;cursor:pointer;border-radius:999px;padding:8px 10px;font:700 12px ' + FONT + ';background:rgba(255,255,255,.16);color:#fff}',
     '#rpz-bar #rpz-mode{border:0;cursor:pointer;border-radius:999px;padding:8px 14px;font:700 12px ' + FONT + ';background:' + ACCENT + ';color:#fff}',
     '#rpz-bar #rpz-mode.off{background:rgba(255,255,255,.16)}',
     '#rpz-composer{position:fixed;z-index:2147483000;width:250px;background:#fff;border-radius:12px;box-shadow:0 20px 60px rgba(0,0,0,.4);padding:12px}',
@@ -252,7 +258,8 @@
       '<button id="rpz-dev"></button>' +
       '<span class="chip" id="rpz-count">0</span>' +
       '<input id="rpz-name" placeholder="Your name" />' +
-      '<button id="rpz-mode">✏️ Commenting</button>';
+      '<button id="rpz-mode">✏️ Commenting</button>' +
+      '<button id="rpz-exit" title="Exit review">✕</button>';
     document.body.appendChild(bar);
     bar.querySelector('.chip b').textContent = rawBoard;
 
@@ -270,6 +277,14 @@
     devBtn = bar.querySelector('#rpz-dev');
     devBtn.addEventListener('click', toggleDevice);
     renderDev();
+    bar.querySelector('#rpz-exit').addEventListener('click', function () {
+      if (!confirm('Exit review mode?')) return;
+      try { sessionStorage.removeItem(SKEY); } catch (e) {}
+      params.delete(cfg.param);
+      params.delete('framed');
+      history.replaceState(null, '', location.pathname + (params.toString() ? '?' + params.toString() : '') + location.hash);
+      location.reload();
+    });
 
     window.addEventListener('message', function (e) {
       if (e && e.data && e.data.rpz === 'count' && typeof e.data.v === 'number') { count = e.data.v; setCount(); }
