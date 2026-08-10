@@ -33,14 +33,23 @@
   var params = new URLSearchParams(location.search);
   var rawBoard = params.get(cfg.param);
   var SKEY = 'rpz-board';
+  var inPreview = false; // navigated inside our own device-preview iframe (param lost, frame identity kept)
+  try { inPreview = !!(window.frameElement && window.frameElement.closest('#rpz-preview')); } catch (e) {}
   try {
-    if (rawBoard) sessionStorage.setItem(SKEY, rawBoard); // param wins; refresh the stored board
-    else if (window.self === window.top) rawBoard = sessionStorage.getItem(SKEY); // iframes need the explicit param
+    if (rawBoard) {
+      sessionStorage.setItem(SKEY, rawBoard); // param wins; refresh the stored board
+    } else if (window.self === window.top || inPreview) { // other iframes need the explicit param
+      rawBoard = sessionStorage.getItem(SKEY);
+      if (rawBoard && window.self === window.top) { // re-sync URL so a copied link re-activates the board
+        params.set(cfg.param, rawBoard);
+        history.replaceState(null, '', location.pathname + '?' + params.toString() + location.hash);
+      }
+    }
   } catch (e) { /* storage blocked → param-only behavior */ }
   if (!rawBoard) return; // inert unless activated by param or stored board
 
   var reviewId = rawBoard;
-  var framed = params.has('framed'); // running inside the device-preview iframe
+  var framed = params.has('framed') || inPreview; // running inside the device-preview iframe
   var ACCENT = cfg.accent, INK = cfg.ink, FONT = cfg.font;
   var tint = function (pct) { return 'color-mix(in srgb, ' + ACCENT + ' ' + pct + '%, #fff)'; };
 
@@ -396,7 +405,7 @@
       var s = document.createElement('span');
       s.textContent = o.m[p].n;
       b.appendChild(s);
-      b.addEventListener('click', function () { location.href = o.m[p].href; });
+      b.addEventListener('click', function () { location.href = o.m[p].href + '?' + encodeURIComponent(cfg.param) + '=' + encodeURIComponent(rawBoard); });
       pagesPop.appendChild(b);
     });
     var barTop = document.getElementById('rpz-bar').getBoundingClientRect().top;
