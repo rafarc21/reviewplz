@@ -61,7 +61,10 @@
     '.rpz-card{position:absolute;transform:translate(-50%,8px);width:262px;max-height:62vh;overflow-y:auto;background:#fff;color:' + INK + ';border-radius:12px;box-shadow:0 18px 50px rgba(0,0,0,.3);padding:12px 14px;font:400 14px/1.5 ' + FONT + ';pointer-events:auto}',
     '.rpz-card .who{font-weight:700;font-size:12px}',
     '.rpz-card .when{color:#6B7078;font-size:11px;margin-bottom:6px}',
-    '.rpz-card .tx{font-size:14px}',
+    '.rpz-card .tx{font-size:14px;flex:1}',
+    '.rpz-card .txrow{display:flex;gap:6px;align-items:flex-start}',
+    '.rpz-card .edit{border:0;cursor:pointer;background:none;padding:0;font-size:13px;line-height:1.5;opacity:.45}',
+    '.rpz-card .edit:hover{opacity:1}',
     '.rpz-thread{display:flex;flex-direction:column;gap:9px;margin-top:10px}',
     '.rpz-thread .rep-item{border-left:2px solid ' + tint(30) + ';padding-left:9px}',
     '.rpz-thread .rh{display:flex;gap:6px;align-items:baseline}',
@@ -74,7 +77,7 @@
     '.rpz-card .row button{flex:1;border:0;cursor:pointer;border-radius:7px;padding:8px;font:700 12px ' + FONT + '}',
     '.rpz-card .row .reply,.rpz-card .row .esave{background:' + ACCENT + ';color:#fff}',
     '.rpz-card .row .del{background:' + tint(12) + ';color:' + ACCENT + '}',
-    '.rpz-card .row .edit,.rpz-card .row .ecancel{background:#F2F2F4;color:' + INK + '}',
+    '.rpz-card .row .ecancel{background:#F2F2F4;color:' + INK + '}',
     '.rpz-card .etx{height:64px;margin-top:4px}',
     '#rpz-gate{position:fixed;inset:0;z-index:2147483647;background:rgba(11,13,17,.82);backdrop-filter:blur(8px);display:flex;align-items:center;justify-content:center;padding:24px;font-family:' + FONT + '}',
     '#rpz-gate .g{width:384px;max-width:92vw;background:#fff;color:' + INK + ';border-radius:18px;padding:26px 26px 22px;box-shadow:0 40px 100px rgba(0,0,0,.5)}',
@@ -337,12 +340,14 @@
       var card = document.createElement('div');
       card.className = 'rpz-card rpz';
       card.innerHTML =
-        '<div class="who"></div><div class="when"></div><div class="tx"></div>' +
+        '<div class="who"></div><div class="when"></div>' +
+        '<div class="txrow"><div class="tx"></div><button class="edit" title="Edit comment">✏️</button></div>' +
         '<div class="rpz-thread"></div>' +
         '<textarea class="rep" placeholder="Reply…"></textarea>' +
-        '<div class="row"><button class="del">Delete</button><button class="edit">Edit</button><button class="reply">Reply</button></div>';
+        '<div class="row"><button class="del">Delete</button><button class="reply">Reply</button></div>';
       card.querySelector('.who').textContent = c.author;
       card.querySelector('.when').textContent = new Date(c.ts).toLocaleString();
+      var txRow = card.querySelector('.txrow');
       var txEl = card.querySelector('.tx');
       txEl.textContent = c.text;
       var actionRow = card.querySelector('.row');
@@ -373,12 +378,12 @@
         var erow = document.createElement('div');
         erow.className = 'row';
         erow.innerHTML = '<button class="ecancel">Cancel</button><button class="esave">Save</button>';
-        txEl.style.display = 'none'; repTa.style.display = 'none'; actionRow.style.display = 'none';
+        txRow.style.display = 'none'; repTa.style.display = 'none'; actionRow.style.display = 'none';
         card.insertBefore(ed, thread);
         card.insertBefore(erow, thread);
         var endEdit = function () {
           ed.remove(); erow.remove();
-          txEl.style.display = ''; repTa.style.display = ''; actionRow.style.display = '';
+          txRow.style.display = ''; repTa.style.display = ''; actionRow.style.display = '';
           schedule(false);
         };
         erow.querySelector('.ecancel').addEventListener('click', endEdit);
