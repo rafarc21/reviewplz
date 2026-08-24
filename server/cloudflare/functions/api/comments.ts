@@ -1,7 +1,7 @@
 /// <reference types="@cloudflare/workers-types" />
 
 // Reviewplz comments API, stored in Cloudflare D1 (binding DB).
-// GET ?board=<board> lists; POST appends; DELETE removes (cascades to replies).
+// GET ?board=<board> lists; POST appends; PUT edits text; DELETE removes (cascades to replies).
 
 interface Env {
   DB: D1Database;
@@ -55,6 +55,23 @@ export async function onRequestPost(context: { request: Request; env: Env }): Pr
     .bind(c.id, board, c.x, c.y, c.path, c.text, c.author, c.ts, c.sel, c.fx, c.fy)
     .run();
   return json(c, 201);
+}
+
+export async function onRequestPut(context: { request: Request; env: Env }): Promise<Response> {
+  let body: any;
+  try {
+    body = await context.request.json();
+  } catch {
+    return json({ error: 'bad json' }, 400);
+  }
+  const text = String(body.text ?? '').trim().slice(0, 2000);
+  const id = String(body.id || '');
+  if (!text || !id) return json({ error: 'empty' }, 400);
+  const r = await context.env.DB.prepare('UPDATE comments SET text = ?1 WHERE id = ?2 AND board = ?3')
+    .bind(text, id, clean(body.board))
+    .run();
+  if (!r.meta.changes) return json({ error: 'not found' }, 404);
+  return json({ ok: true, text });
 }
 
 export async function onRequestDelete(context: { request: Request; env: Env }): Promise<Response> {

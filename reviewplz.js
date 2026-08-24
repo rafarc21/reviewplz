@@ -72,8 +72,10 @@
     '.rpz-card .rep:focus{border-color:' + ACCENT + '}',
     '.rpz-card .row{display:flex;gap:8px;margin-top:8px}',
     '.rpz-card .row button{flex:1;border:0;cursor:pointer;border-radius:7px;padding:8px;font:700 12px ' + FONT + '}',
-    '.rpz-card .row .reply{background:' + ACCENT + ';color:#fff}',
+    '.rpz-card .row .reply,.rpz-card .row .esave{background:' + ACCENT + ';color:#fff}',
     '.rpz-card .row .del{background:' + tint(12) + ';color:' + ACCENT + '}',
+    '.rpz-card .row .edit,.rpz-card .row .ecancel{background:#F2F2F4;color:' + INK + '}',
+    '.rpz-card .etx{height:64px;margin-top:4px}',
     '#rpz-gate{position:fixed;inset:0;z-index:2147483647;background:rgba(11,13,17,.82);backdrop-filter:blur(8px);display:flex;align-items:center;justify-content:center;padding:24px;font-family:' + FONT + '}',
     '#rpz-gate .g{width:384px;max-width:92vw;background:#fff;color:' + INK + ';border-radius:18px;padding:26px 26px 22px;box-shadow:0 40px 100px rgba(0,0,0,.5)}',
     '#rpz-gate h3{margin:0 0 6px;font:800 20px/1.2 ' + FONT + '}',
@@ -338,10 +340,12 @@
         '<div class="who"></div><div class="when"></div><div class="tx"></div>' +
         '<div class="rpz-thread"></div>' +
         '<textarea class="rep" placeholder="Reply…"></textarea>' +
-        '<div class="row"><button class="del">Delete</button><button class="reply">Reply</button></div>';
+        '<div class="row"><button class="del">Delete</button><button class="edit">Edit</button><button class="reply">Reply</button></div>';
       card.querySelector('.who').textContent = c.author;
       card.querySelector('.when').textContent = new Date(c.ts).toLocaleString();
-      card.querySelector('.tx').textContent = c.text;
+      var txEl = card.querySelector('.tx');
+      txEl.textContent = c.text;
+      var actionRow = card.querySelector('.row');
       var thread = card.querySelector('.rpz-thread');
       var addReply = function (rp) {
         var it = document.createElement('div');
@@ -361,6 +365,34 @@
           .then(function (r) { return r.json(); })
           .then(function (rp) { addReply(rp); repTa.value = ''; schedule(false); })
           .catch(function () {});
+      });
+      card.querySelector('.edit').addEventListener('click', function () {
+        var ed = document.createElement('textarea');
+        ed.className = 'rep etx';
+        ed.value = c.text;
+        var erow = document.createElement('div');
+        erow.className = 'row';
+        erow.innerHTML = '<button class="ecancel">Cancel</button><button class="esave">Save</button>';
+        txEl.style.display = 'none'; repTa.style.display = 'none'; actionRow.style.display = 'none';
+        card.insertBefore(ed, thread);
+        card.insertBefore(erow, thread);
+        var endEdit = function () {
+          ed.remove(); erow.remove();
+          txEl.style.display = ''; repTa.style.display = ''; actionRow.style.display = '';
+          schedule(false);
+        };
+        erow.querySelector('.ecancel').addEventListener('click', endEdit);
+        erow.querySelector('.esave').addEventListener('click', function () {
+          var nt = ed.value.trim();
+          if (!nt) return;
+          if (nt === c.text) { endEdit(); return; }
+          fetch(cfg.api + '/comments', { method: 'PUT', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ board: board, id: c.id, text: nt }) })
+            .then(function (r) { if (r.ok) { c.text = nt; txEl.textContent = nt; endEdit(); } }) // non-ok → stay editable so nothing typed is lost
+            .catch(function () {});
+        });
+        ed.focus();
+        ed.selectionStart = ed.selectionEnd = ed.value.length;
+        schedule(false);
       });
       card.querySelector('.del').addEventListener('click', function (ev) {
         ev.stopPropagation();

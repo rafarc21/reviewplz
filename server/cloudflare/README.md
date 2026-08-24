@@ -40,6 +40,7 @@ the widget at `/reviewplz.js`.
 |--------|------|--------------|---------|
 | GET    | `/api/comments?board=<b>` | — | list comments on a board |
 | POST   | `/api/comments` | `{board,text,author,sel,fx,fy,x,y,path}` | add a comment |
+| PUT    | `/api/comments` | `{board,id,text}` | edit a comment's text |
 | DELETE | `/api/comments` | `{board,id}` | delete a comment (+ its replies) |
 | GET    | `/api/replies?comment=<id>` | — | list a comment's replies |
 | POST   | `/api/replies` | `{comment_id,board,text,author}` | add a reply |
