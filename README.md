@@ -21,6 +21,7 @@ Tools like this exist (Markup, BugHerd, Pastel…) but they're paid SaaS that in
 - 📌 **Pinned comments** anchored to the *element* they're dropped on — they stay glued through scrolling, lazy-loaded media, and reveal animations (not brittle x/y percentages).
 - 💬 **Threaded replies** — multiple reviewers, one conversation per pin.
 - ✏️ **Editable comments** — fix a typo or rephrase after posting; the pin updates in place.
+- ✅ **Resolve & filter** — tick a comment's ✓ when it's handled, Figma-style. Resolved pins disappear by default; a toolbar toggle shows them greyed-out, where they can be unresolved.
 - 🙋 **Identity gate** — first-time reviewers enter a name, so every comment and reply is attributed.
 - 🖥 / 📱 **Device review** — one toggle flips between desktop and mobile; comments are kept per device. On a phone, "desktop" loads the real desktop layout in a scrollable frame (like Chrome's *Request desktop site*).
 - 🧭 **Multi-page review** — once activated, the board follows the reviewer through internal navigation (per tab, via `sessionStorage`) until they hit ✕ in the toolbar. Comments stick to the page they were made on; a 🗂 chip lists the other pages that have comments and jumps to them. Comments from before v0.2 (no recorded path) render on every page.

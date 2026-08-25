@@ -58,8 +58,12 @@
   var css = [
     '.rpz{box-sizing:border-box}',
     '.rpz-pin{position:absolute;transform:translate(-50%,-100%);width:30px;height:30px;border-radius:50% 50% 50% 2px;background:' + ACCENT + ';color:#fff;font:700 13px/30px ' + FONT + ';text-align:center;box-shadow:0 4px 14px rgba(0,0,0,.35);cursor:pointer;pointer-events:auto}',
+    '.rpz-pin.done{background:#9AA0A6}',
     '.rpz-card{position:absolute;transform:translate(-50%,8px);width:262px;max-height:62vh;overflow-y:auto;background:#fff;color:' + INK + ';border-radius:12px;box-shadow:0 18px 50px rgba(0,0,0,.3);padding:12px 14px;font:400 14px/1.5 ' + FONT + ';pointer-events:auto}',
+    '.rpz-card .hd{display:flex;justify-content:space-between;align-items:center}',
     '.rpz-card .who{font-weight:700;font-size:12px}',
+    '.rpz-card .res{flex:0 0 auto;width:22px;height:22px;border:1.5px solid #D6D8DC;border-radius:50%;background:none;color:#9AA0A6;cursor:pointer;font:700 12px/19px ' + FONT + ';padding:0}',
+    '.rpz-card .res.on{background:#2E9E5B;border-color:#2E9E5B;color:#fff}',
     '.rpz-card .when{color:#6B7078;font-size:11px;margin-bottom:6px}',
     '.rpz-card .tx{font-size:14px;flex:1}',
     '.rpz-card .txrow{display:flex;gap:6px;align-items:flex-start}',
@@ -93,9 +97,9 @@
     '#rpz-bar .chip{background:rgba(255,255,255,.12);border-radius:7px;padding:4px 8px;font-size:12px}',
     '#rpz-bar .chip b{color:#fff}',
     '#rpz-bar input{background:rgba(255,255,255,.12);border:0;color:#fff;border-radius:8px;padding:6px 9px;font:600 13px ' + FONT + ';width:100px}',
-    '#rpz-bar #rpz-dev{border:0;cursor:pointer;border-radius:999px;padding:8px 12px;font:700 12px ' + FONT + ';background:rgba(255,255,255,.16);color:#fff}',
-    '#rpz-bar #rpz-exit{border:0;cursor:pointer;border-radius:999px;padding:8px 10px;font:700 12px ' + FONT + ';background:rgba(255,255,255,.16);color:#fff}',
-    '#rpz-bar #rpz-pgs{border:0;cursor:pointer;border-radius:999px;padding:8px 12px;font:700 12px ' + FONT + ';background:rgba(255,255,255,.16);color:#fff}',
+    '#rpz-bar #rpz-dev,#rpz-bar #rpz-exit,#rpz-bar #rpz-pgs,#rpz-bar #rpz-res{border:0;cursor:pointer;border-radius:999px;padding:8px 12px;font:700 12px ' + FONT + ';background:rgba(255,255,255,.16);color:#fff}',
+    '#rpz-bar #rpz-exit{padding:8px 10px}',
+    '#rpz-bar #rpz-res.on{background:' + ACCENT + '}',
     '#rpz-pages{position:fixed;left:16px;z-index:2147483647;background:#0B0D11;color:#fff;border-radius:12px;padding:6px;font:600 12px ' + FONT + ';box-shadow:0 10px 30px rgba(0,0,0,.4);display:flex;flex-direction:column;gap:2px;max-height:40vh;overflow-y:auto;min-width:200px}',
     '#rpz-pages button{border:0;cursor:pointer;background:none;color:#fff;text-align:left;border-radius:8px;padding:7px 10px;font:600 12px ' + FONT + ';display:flex;gap:12px;justify-content:space-between;align-items:baseline}',
     '#rpz-pages button:hover{background:rgba(255,255,255,.14)}',
@@ -133,6 +137,8 @@
   };
   var pagePath = normPath(location.pathname);
   var onPage = function (c) { return !c.path || normPath(c.path) === pagePath; }; // no path → legacy, every page
+  var showResolved = false; // resolved pins stay hidden until the toolbar filter shows them
+  var passFilter = function (c) { return showResolved || !c.resolved; };
   var allComments = [];
   var name = localStorage.getItem('rpz-name') || '';
   var adding = true;
@@ -262,7 +268,7 @@
   setInterval(function () { schedule(false); }, 700); // safety: late media/layout shifts
 
   // ── single toolbar (top window only) ──
-  var nameInput = null, modeBtn = null, countEl = null, devBtn = null, pagesBtn = null, pagesPop = null;
+  var nameInput = null, modeBtn = null, countEl = null, devBtn = null, pagesBtn = null, pagesPop = null, resBtn = null;
 
   var setCount = function () {
     if (countEl) countEl.textContent = count + (count === 1 ? ' comment' : ' comments');
@@ -276,6 +282,7 @@
   var renderDev = function () { if (devBtn) devBtn.textContent = viewedDev() === 'mobile' ? '🖥 Desktop' : '📱 Mobile'; };
   var relayName = function () { if (previewFrame && previewFrame.contentWindow) previewFrame.contentWindow.postMessage({ rpz: 'name', v: name }, '*'); };
   var relayMode = function () { if (previewFrame && previewFrame.contentWindow) previewFrame.contentWindow.postMessage({ rpz: 'mode', v: adding }, '*'); };
+  var relayFilter = function () { if (previewFrame && previewFrame.contentWindow) previewFrame.contentWindow.postMessage({ rpz: 'filter', v: showResolved }, '*'); };
 
   if (!framed) {
     var bar = document.createElement('div');
@@ -286,6 +293,7 @@
       '<button id="rpz-dev"></button>' +
       '<span class="chip" id="rpz-count">0</span>' +
       '<button id="rpz-pgs"></button>' +
+      '<button id="rpz-res"></button>' +
       '<input id="rpz-name" placeholder="Your name" />' +
       '<button id="rpz-mode">✏️ Commenting</button>' +
       '<button id="rpz-exit" title="Exit review">✕</button>';
@@ -317,6 +325,9 @@
     pagesBtn = bar.querySelector('#rpz-pgs');
     pagesBtn.style.display = 'none'; // shown by renderPages when other pages hold comments
     pagesBtn.addEventListener('click', function (e) { e.stopPropagation(); if (pagesPop) closePages(); else openPages(); });
+    resBtn = bar.querySelector('#rpz-res');
+    resBtn.style.display = 'none'; // shown by renderRes once the board has resolved comments
+    resBtn.addEventListener('click', function () { showResolved = !showResolved; renderPins(); relayFilter(); });
 
     window.addEventListener('message', function (e) {
       if (e && e.data && e.data.rpz === 'count' && typeof e.data.v === 'number') { count = e.data.v; setCount(); }
@@ -326,12 +337,13 @@
       var dd = e && e.data; if (!dd || dd.rpz == null) return;
       if (dd.rpz === 'name') name = dd.v || '';
       else if (dd.rpz === 'mode') adding = !!dd.v;
+      else if (dd.rpz === 'filter') { showResolved = !!dd.v; renderPins(); }
     });
   }
 
   function addPin(c) {
     var pin = document.createElement('div');
-    pin.className = 'rpz-pin rpz';
+    pin.className = 'rpz-pin rpz' + (c.resolved ? ' done' : '');
     pin.style.display = 'none'; // positioned on next frame; numbered by renumber()
     var rec = { c: c, pin: pin, card: null };
     pin.addEventListener('click', function (e) {
@@ -340,7 +352,7 @@
       var card = document.createElement('div');
       card.className = 'rpz-card rpz';
       card.innerHTML =
-        '<div class="who"></div><div class="when"></div>' +
+        '<div class="hd"><div class="who"></div><button class="res">✓</button></div><div class="when"></div>' +
         '<div class="txrow"><div class="tx"></div><button class="edit" title="Edit comment">✏️</button></div>' +
         '<div class="rpz-thread"></div>' +
         '<textarea class="rep" placeholder="Reply…"></textarea>' +
@@ -351,6 +363,29 @@
       var txEl = card.querySelector('.tx');
       txEl.textContent = c.text;
       var actionRow = card.querySelector('.row');
+      var resB = card.querySelector('.res');
+      var syncRes = function () {
+        resB.classList.toggle('on', !!c.resolved);
+        resB.title = c.resolved ? 'Unresolve' : 'Resolve';
+        pin.classList.toggle('done', !!c.resolved);
+      };
+      syncRes();
+      resB.addEventListener('click', function () {
+        var to = c.resolved ? 0 : 1;
+        fetch(cfg.api + '/comments', { method: 'PUT', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ board: board, id: c.id, resolved: !!to }) })
+          .then(function (r) {
+            if (!r.ok) return;
+            c.resolved = to;
+            if (to && !showResolved) { // resolving under the default filter hides the pin
+              if (rec.card) rec.card.remove();
+              pin.remove();
+              recs = recs.filter(function (x) { return x !== rec; });
+              renumber(); refreshCount();
+            } else syncRes();
+            renderRes();
+          })
+          .catch(function () {});
+      });
       var thread = card.querySelector('.rpz-thread');
       var addReply = function (rp) {
         var it = document.createElement('div');
@@ -406,7 +441,8 @@
         if (rec.card) rec.card.remove();
         pin.remove();
         recs = recs.filter(function (x) { return x !== rec; });
-        renumber(); refreshCount();
+        allComments = allComments.filter(function (x) { return x !== c; });
+        renumber(); refreshCount(); renderRes();
       });
       card.style.position = pin.style.position || 'absolute';
       card.style.left = pin.style.left; card.style.top = pin.style.top; card.style.zIndex = pin.style.zIndex;
@@ -422,6 +458,7 @@
   var otherPages = function () {
     var m = {}, order = [], i, raw, p;
     for (i = 0; i < allComments.length; i++) {
+      if (!passFilter(allComments[i])) continue; // counts follow the resolved filter
       raw = allComments[i].path;
       if (!raw) continue; // legacy → shown on every page, not listed
       if (!/^\/(?![\/\\])/.test(raw)) continue; // only same-site rooted paths are pages (\ normalizes to / in URLs)
@@ -461,14 +498,30 @@
     closePages();
   };
 
+  var renderRes = function () {
+    if (!resBtn) return;
+    var total = 0, here = 0;
+    allComments.forEach(function (c) { if (c.resolved) { total++; if (onPage(c)) here++; } });
+    if (!total) { showResolved = false; resBtn.style.display = 'none'; resBtn.classList.remove('on'); return; }
+    resBtn.style.display = '';
+    resBtn.classList.toggle('on', showResolved);
+    resBtn.textContent = '✓ ' + here + ' resolved';
+  };
+
+  function renderPins() {
+    clearPins();
+    closeComposer();
+    allComments.filter(onPage).filter(passFilter).forEach(addPin);
+    renumber(); refreshCount(); renderPages(); renderRes(); schedule(false);
+  }
+
   function loadBoard() {
     clearPins();
     refreshCount();
     closeComposer();
     fetch(apiUrl()).then(function (r) { return r.json(); }).then(function (list) {
       allComments = list;
-      list.filter(onPage).forEach(addPin);
-      renumber(); refreshCount(); renderPages(); schedule(false);
+      renderPins();
     }).catch(function () {});
   }
 
@@ -502,7 +555,7 @@
     preview.addEventListener('click', function (e) { if (e.target === preview) closePreview(); });
     document.body.appendChild(preview);
     previewFrame = preview.querySelector('iframe');
-    previewFrame.addEventListener('load', function () { relayName(); relayMode(); });
+    previewFrame.addEventListener('load', function () { relayName(); relayMode(); relayFilter(); });
     renderDev();
   }
   function toggleDevice() {
@@ -600,7 +653,7 @@
         body: JSON.stringify({ board: board, x: x, y: y, sel: sel, fx: fx, fy: fy, text: text, author: name || 'Guest', path: location.pathname }),
       })
         .then(function (r) { return r.json(); })
-        .then(function (c) { addPin(c); renumber(); refreshCount(); schedule(false); })
+        .then(function (c) { allComments.push(c); addPin(c); renumber(); refreshCount(); schedule(false); })
         .catch(function () {});
       closeComposer();
     });

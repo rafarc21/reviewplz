@@ -12,7 +12,8 @@ CREATE TABLE IF NOT EXISTS comments (
   ts     INTEGER,     -- epoch ms
   sel    TEXT,        -- CSS path of the anchored element
   fx     REAL,        -- fractional x offset within that element (0..1)
-  fy     REAL         -- fractional y offset within that element (0..1)
+  fy     REAL,        -- fractional y offset within that element (0..1)
+  resolved INTEGER DEFAULT 0  -- 1 = resolved; the widget hides these unless the filter shows them
 );
 CREATE INDEX IF NOT EXISTS idx_comments_board ON comments(board);
 

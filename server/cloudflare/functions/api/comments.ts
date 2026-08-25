@@ -1,7 +1,7 @@
 /// <reference types="@cloudflare/workers-types" />
 
 // Reviewplz comments API, stored in Cloudflare D1 (binding DB).
-// GET ?board=<board> lists; POST appends; PUT edits text; DELETE removes (cascades to replies).
+// GET ?board=<board> lists; POST appends; PUT edits text / resolves; DELETE removes (cascades to replies).
 
 interface Env {
   DB: D1Database;
@@ -19,7 +19,7 @@ const clean = (b: string | null | undefined) =>
 export async function onRequestGet(context: { request: Request; env: Env }): Promise<Response> {
   const board = clean(new URL(context.request.url).searchParams.get('board'));
   const { results } = await context.env.DB.prepare(
-    'SELECT id, x, y, path, text, author, ts, sel, fx, fy FROM comments WHERE board = ?1 ORDER BY ts ASC'
+    'SELECT id, x, y, path, text, author, ts, sel, fx, fy, resolved FROM comments WHERE board = ?1 ORDER BY ts ASC'
   )
     .bind(board)
     .all();
@@ -64,14 +64,25 @@ export async function onRequestPut(context: { request: Request; env: Env }): Pro
   } catch {
     return json({ error: 'bad json' }, 400);
   }
-  const text = String(body.text ?? '').trim().slice(0, 2000);
   const id = String(body.id || '');
-  if (!text || !id) return json({ error: 'empty' }, 400);
-  const r = await context.env.DB.prepare('UPDATE comments SET text = ?1 WHERE id = ?2 AND board = ?3')
-    .bind(text, id, clean(body.board))
+  const sets: string[] = [];
+  const binds: (string | number)[] = [];
+  if (body.text !== undefined) {
+    const text = String(body.text ?? '').trim().slice(0, 2000);
+    if (!text) return json({ error: 'empty' }, 400);
+    sets.push('text = ?');
+    binds.push(text);
+  }
+  if (body.resolved !== undefined) {
+    sets.push('resolved = ?');
+    binds.push(body.resolved ? 1 : 0);
+  }
+  if (!id || !sets.length) return json({ error: 'empty' }, 400);
+  const r = await context.env.DB.prepare('UPDATE comments SET ' + sets.join(', ') + ' WHERE id = ? AND board = ?')
+    .bind(...binds, id, clean(body.board))
     .run();
   if (!r.meta.changes) return json({ error: 'not found' }, 404);
-  return json({ ok: true, text });
+  return json({ ok: true });
 }
 
 export async function onRequestDelete(context: { request: Request; env: Env }): Promise<Response> {
