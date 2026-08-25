@@ -28,7 +28,8 @@ Tools like this exist (Markup, BugHerd, Pastel…) but they're paid SaaS that in
 - 🪟 **Respects your UI** — comments dropped on a modal/popup track it and sit above it; page comments sit below open overlays. You can comment *on* modals.
 - 🔢 **Clean numbering** — pins renumber as one continuous series; no duplicates after deletes.
 - 🎨 **Themeable** — set your accent colour, font, and which elements never take a comment.
-- 🪶 **Zero dependencies**, ~15 KB, no build step.
+- 🪶 **Zero dependencies**, ~10 KB gzipped over the wire, no build step.
+- 📐 **Edge-aware** — comment cards clamp into the viewport and flip above their pin near the bottom edge; nothing clips off-screen.
 
 ## Quick start
 
