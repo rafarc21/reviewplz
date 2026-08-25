@@ -40,10 +40,21 @@ the widget at `/reviewplz.js`.
 |--------|------|--------------|---------|
 | GET    | `/api/comments?board=<b>` | — | list comments on a board |
 | POST   | `/api/comments` | `{board,text,author,sel,fx,fy,x,y,path}` | add a comment |
+| PUT    | `/api/comments` | `{board,id,text?,resolved?}` | edit a comment's text and/or set resolved |
 | DELETE | `/api/comments` | `{board,id}` | delete a comment (+ its replies) |
 | GET    | `/api/replies?comment=<id>` | — | list a comment's replies |
 | POST   | `/api/replies` | `{comment_id,board,text,author}` | add a reply |
 | DELETE | `/api/replies` | `{id}` | delete a reply |
+
+## Upgrading
+
+v0.4 adds a `resolved` column to `comments`. Databases created before that need
+one command (fresh installs get it from `schema.sql`):
+
+```bash
+wrangler d1 execute reviewplz --remote --command \
+  "ALTER TABLE comments ADD COLUMN resolved INTEGER DEFAULT 0"
+```
 
 ## Reading / clearing data
 
