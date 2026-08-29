@@ -216,7 +216,26 @@
   var closeCards = function () { recs.forEach(function (r) { if (r.card) { r.card.remove(); r.card = null; } }); };
 
   var placeNode = function (node, pos, left, top, z) {
+    left = Math.max(15, left); top = Math.max(30, top); // pin body extends 15 left / 30 up of its anchor — keep it on-canvas
     node.style.position = pos; node.style.left = left + 'px'; node.style.top = top + 'px'; node.style.zIndex = z; node.style.display = '';
+  };
+
+  // card is 262px wide, centered under its pin — clamp into the viewport, flip above when the bottom would clip
+  var placeCard = function (rec) {
+    var card = rec.card, pin = rec.pin;
+    card.style.position = pin.style.position || 'absolute';
+    card.style.zIndex = pin.style.zIndex;
+    card.style.display = pin.style.display;
+    if (card.style.display === 'none') return;
+    var fixed = card.style.position === 'fixed';
+    var x = (parseFloat(pin.style.left) || 0) - (fixed ? 0 : scrollX);
+    var y = (parseFloat(pin.style.top) || 0) - (fixed ? 0 : scrollY);
+    var m = 139; // half width + 8px margin
+    var cx = Math.max(m, Math.min(x, window.innerWidth - m));
+    var flip = y + 8 + card.offsetHeight > window.innerHeight - 8 && y - 38 - card.offsetHeight > 8;
+    card.style.transform = flip ? 'translate(-50%,calc(-100% - 38px))' : '';
+    card.style.left = (fixed ? cx : cx + scrollX) + 'px';
+    card.style.top = pin.style.top;
   };
 
   function positionAll(scrolling) {
@@ -243,13 +262,7 @@
         var de = document.documentElement;
         placeNode(rec.pin, 'absolute', ((c.x || 0) / 100) * de.scrollWidth, ((c.y || 0) / 100) * de.scrollHeight, pageZ);
       }
-      if (rec.card) {
-        rec.card.style.position = rec.pin.style.position;
-        rec.card.style.left = rec.pin.style.left;
-        rec.card.style.top = rec.pin.style.top;
-        rec.card.style.zIndex = rec.pin.style.zIndex;
-        rec.card.style.display = rec.pin.style.display;
-      }
+      if (rec.card) placeCard(rec);
     }
     if (composer) composer.style.zIndex = composer.dataset.az || pageZ;
   }
@@ -444,10 +457,9 @@
         allComments = allComments.filter(function (x) { return x !== c; });
         renumber(); refreshCount(); renderRes();
       });
-      card.style.position = pin.style.position || 'absolute';
-      card.style.left = pin.style.left; card.style.top = pin.style.top; card.style.zIndex = pin.style.zIndex;
       document.body.appendChild(card);
       rec.card = card;
+      placeCard(rec); // clamped placement needs the card in the DOM (height for flip)
       schedule(false);
     });
     document.body.appendChild(pin);
