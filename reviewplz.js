@@ -151,6 +151,7 @@
   var cssEsc = function (str) { return window.CSS && CSS.escape ? CSS.escape(str) : str.replace(/[^a-zA-Z0-9_-]/g, '\\$&'); };
   var cssPath = function (el) {
     if (!el || el.nodeType !== 1) return '';
+    if (el === document.body) return 'body'; // corner/edge clicks land on body — anchor there, never the percent fallback
     if (el.id && document.querySelectorAll('#' + cssEsc(el.id)).length === 1) return '#' + cssEsc(el.id);
     var parts = [];
     var n = el;
@@ -216,7 +217,12 @@
   var closeCards = function () { recs.forEach(function (r) { if (r.card) { r.card.remove(); r.card = null; } }); };
 
   var placeNode = function (node, pos, left, top, z) {
-    left = Math.max(15, left); top = Math.max(30, top); // pin body extends 15 left / 30 up of its anchor — keep it on-canvas
+    // pin body extends 15 left/right, 30 up of its anchor — clamp fully on-canvas.
+    // The max clamp also prevents a feedback loop: an overflowing pin widens scrollWidth,
+    // which re-widens percent-positioned pins on the next tick, walking them off-page.
+    var de = document.documentElement;
+    left = Math.max(15, Math.min(left, (pos === 'fixed' ? window.innerWidth : de.scrollWidth) - 15));
+    top = Math.max(30, Math.min(top, pos === 'fixed' ? window.innerHeight : de.scrollHeight));
     node.style.position = pos; node.style.left = left + 'px'; node.style.top = top + 'px'; node.style.zIndex = z; node.style.display = '';
   };
 
@@ -264,7 +270,6 @@
       }
       if (rec.card) placeCard(rec);
     }
-    if (composer) composer.style.zIndex = composer.dataset.az || pageZ;
   }
 
   var raf = 0;
@@ -643,17 +648,15 @@
     var fy = tr.height ? Math.max(0, Math.min(1, (e.clientY - tr.top) / tr.height)) : 0;
     var x = (e.pageX / document.documentElement.scrollWidth) * 100; // fallback
     var y = (e.pageY / document.documentElement.scrollHeight) * 100; // fallback
-    var ov = overlayInfo(target);
 
     composer = document.createElement('div');
     composer.id = 'rpz-composer';
     composer.className = 'rpz';
-    if (ov.z > 0) composer.dataset.az = String(ov.z + 1); // commenting on a modal → keep composer above it
     composer.style.left = Math.min(e.clientX, window.innerWidth - 266) + 'px';
     composer.style.top = Math.min(e.clientY, window.innerHeight - 160) + 'px';
     composer.innerHTML = '<textarea placeholder="Leave a comment…"></textarea><div class="row"><button class="cancel">Cancel</button><button class="save">Comment</button></div>';
     document.body.appendChild(composer);
-    composer.style.zIndex = composer.dataset.az || String(computeZ());
+    composer.style.zIndex = '2147483647'; // active input — above page overlays AND our toolbar (appended later, wins the tie)
     var ta = composer.querySelector('textarea');
     ta.focus();
     composer.querySelector('.cancel').addEventListener('click', closeComposer);

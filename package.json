@@ -1,6 +1,6 @@
 {
   "name": "reviewplz",
-  "version": "0.4.1",
+  "version": "0.4.2",
   "description": "Self-hosted, Figma-style review & comment overlay for any website. One drop-in script.",
   "main": "reviewplz.js",
   "unpkg": "reviewplz.js",
