@@ -1,0 +1,8 @@
+{
+  "blueprint": {
+    "repo": "yangflow-us/websites",
+    "ref": "main"
+  },
+  "roles": ["maestro", "web-studio", "scratch"],
+  "instance_type": "standard-2"
+}
