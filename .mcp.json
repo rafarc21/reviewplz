@@ -1,0 +1,1 @@
+{"mcpServers": {"playwright": {"command": "bun", "args": ["x", "@playwright/mcp@latest"]}}}
